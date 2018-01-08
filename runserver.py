@@ -5,24 +5,35 @@ EDPS系统运行起始程序
 '''
 __author__ = 'terryzhoujie'
 
-from flask import Flask, render_template
+from flask import Flask, render_template, session, flash
 from flask import redirect
 from flask import abort
 from flask_bootstrap import Bootstrap
 from flask_moment import Moment
 from flask import url_for
 from datetime import datetime
+from form import NameForm
 # from flask_script  import Manager
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'hard to guess string'
 # manage = Manager(app)
 bootstrap = Bootstrap(app)
 momont = Moment(app)
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
-    # return "<h1>hello flask</h1>"
-    return render_template('index.html')
+    # name = None
+    form = NameForm()
+    if form.validate_on_submit():
+        # name = form.name.data
+        # form.name.data = ''
+        oldname = session.get('name')
+        if oldname is not None and oldname != form.name.data:
+            flash('Look like you have changed your name')
+        session['name'] = form.name.data
+        return redirect(url_for('index'))
+    return render_template('index.html', form=form, name=session.get('name'))
 
 @app.route('/user/<name>')
 def user(name):
